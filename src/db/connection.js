@@ -18,6 +18,32 @@ function openRaw(file) {
   return { raw: new DatabaseSync(file), bun: false };
 }
 
+// node:sqlite memberi code 'ERR_SQLITE_ERROR' + errcode numerik (bun:sqlite: errno); samakan dengan kode string SQLite
+// yang dikenali errorHandler (mis. SQLITE_CONSTRAINT_UNIQUE -> 409 DUPLICATE).
+const SQLITE_CODES = {
+  19: 'SQLITE_CONSTRAINT',
+  275: 'SQLITE_CONSTRAINT_CHECK',
+  787: 'SQLITE_CONSTRAINT_FOREIGNKEY',
+  1299: 'SQLITE_CONSTRAINT_NOTNULL',
+  1555: 'SQLITE_CONSTRAINT_PRIMARYKEY',
+  2067: 'SQLITE_CONSTRAINT_UNIQUE',
+};
+
+function normalizeError(err) {
+  const num = typeof err.errcode === 'number' ? err.errcode : err.errno;
+  const known = typeof err.code === 'string' && err.code.startsWith('SQLITE_');
+  if (!known && typeof num === 'number' && SQLITE_CODES[num]) err.code = SQLITE_CODES[num];
+  return err;
+}
+
+const guard = (fn) => (...args) => {
+  try {
+    return fn(...args);
+  } catch (err) {
+    throw normalizeError(err);
+  }
+};
+
 const plain = (row) => (row === null || row === undefined ? undefined : { ...row });
 
 function wrapDatabase({ raw, bun }) {
@@ -27,12 +53,12 @@ function wrapDatabase({ raw, bun }) {
       const st = raw.prepare(sql);
       if (!bun && typeof st.setAllowUnknownNamedParameters === 'function') st.setAllowUnknownNamedParameters(true);
       return {
-        get: (...args) => plain(st.get(...args)),
-        all: (...args) => st.all(...args).map(plain),
-        run: (...args) => st.run(...args),
+        get: guard((...args) => plain(st.get(...args))),
+        all: guard((...args) => st.all(...args).map(plain)),
+        run: guard((...args) => st.run(...args)),
       };
     },
-    exec: (sql) => raw.exec(sql),
+    exec: guard((sql) => raw.exec(sql)),
     pragma: (setting) => raw.exec(`PRAGMA ${setting}`),
     /** Mengembalikan fungsi yang menjalankan fn dalam transaksi (bersarang memakai SAVEPOINT); rollback bila fn melempar error. */
     transaction(fn) {
