@@ -20,6 +20,7 @@ router.get('/health', (req, res) => {
 
 router.post('/auth/register', auth.register);
 router.post('/auth/login', auth.login);
+router.post('/auth/logout', auth.logout);
 
 // Semua endpoint di bawah ini wajib login
 router.use(requireAuth);

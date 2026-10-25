@@ -13,7 +13,7 @@ function createApp({ db, config }) {
     res.set({ 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'SAMEORIGIN', 'Referrer-Policy': 'no-referrer' });
     next();
   });
-  app.use(cors({ origin: config.corsOrigins }));
+  app.use(cors({ origin: config.corsOrigins, credentials: true }));
   app.use(express.json({ limit: '100kb' }));
 
   app.use('/api', routes);

@@ -56,7 +56,7 @@ describe('sistem', () => {
     const db2 = initSchema(openDatabase(file));
     seedIfEmpty(db2); // restart server: seed tidak boleh menimpa/menggandakan
     const api2 = request(createApp({ db: db2, config: { ...first.config, corsOrigins: [] } }));
-    const res = await api2.get(`/api/motorcycles/${created.body.data.id}`).set('Authorization', `Bearer ${first.token}`);
+    const res = await api2.get(`/api/motorcycles/${created.body.data.id}`).set('Cookie', `jenika_session=${first.token}`);
     expect(res.status).toBe(200);
     expect(res.body.data.plate).toBe('BB 9001 ZZ');
     expect(db2.prepare('SELECT COUNT(*) n FROM motorcycles').get().n).toBe(16);

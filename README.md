@@ -62,11 +62,12 @@ Respons: `{ "success": true, "data": ..., "meta": ... }` atau `{ "success": fals
 | Metode | Endpoint | Keterangan |
 |---|---|---|
 | GET | `/api/health` | Status API dan database (503 bila DB bermasalah); publik |
-| POST | `/api/auth/register` | Daftar -> 201 `{user,token}` (403 bila registrasi ditutup) |
-| POST | `/api/auth/login` | `{user,token}` (401 bila salah) |
-| GET | `/api/auth/me` | Profil dari token |
+| POST | `/api/auth/register` | Daftar -> 201 `{user}` dan cookie sesi HttpOnly (403 bila registrasi ditutup) |
+| POST | `/api/auth/login` | `{user}` dan cookie sesi HttpOnly (401 bila salah) |
+| POST | `/api/auth/logout` | Hapus cookie sesi |
+| GET | `/api/auth/me` | Profil dari cookie sesi |
 
-Endpoint berikut wajib header `Authorization: Bearer <token>` (401 bila tidak ada/tidak valid):
+Endpoint berikut memerlukan cookie sesi yang valid (401 bila tidak ada/tidak valid). Request mutasi dengan cookie juga harus berasal dari origin di `CORS_ORIGINS`. Autentikasi melalui bearer token tidak didukung.
 
 | Metode | Endpoint | Keterangan |
 |---|---|---|
@@ -91,4 +92,4 @@ Kode status: 200, 201, 400, 401, 403, 404, 409 (duplikat/bentrok/status tidak va
 | Error CORS di browser | Tambahkan origin frontend ke `CORS_ORIGINS` |
 | Data hilang setelah redeploy | Pasang volume dan arahkan `DB_PATH` ke sana |
 
-Catatan: semua akun terdaftar melihat data yang sama (belum ada peran/multi-usaha) dan belum ada pembatasan percobaan login. Untuk penggunaan nyata: `JWT_SECRET` kuat, HTTPS, dan `ALLOW_REGISTRATION=false` setelah akun pemilik dibuat. Seluruh data contoh fiktif.
+Catatan: semua akun terdaftar melihat data yang sama (belum ada peran/multi-usaha) dan belum ada pembatasan percobaan login. Cookie sesi memakai `HttpOnly`; pada produksi gunakan HTTPS (`Secure`, `SameSite=None`) dan set `CORS_ORIGINS` tepat ke origin frontend. Untuk penggunaan nyata: `JWT_SECRET` kuat dan `ALLOW_REGISTRATION=false` setelah akun pemilik dibuat. Seluruh data contoh fiktif.

@@ -18,8 +18,10 @@ function buildApp({ seed = true, file = ':memory:' } = {}) {
   const app = createApp({ db, config: cfg });
   const userId = userModel.insert(db, { name: 'Admin Test', username: 'admintest', email: 'admin@test.id', password_hash: hashPassword('rahasia123') });
   const token = signToken({ sub: userId }, cfg.jwtSecret, 3600);
-  // api: otomatis membawa token login; raw: tanpa token (untuk menguji proteksi)
-  const authed = (method) => (url) => request(app)[method](url).set('Authorization', `Bearer ${token}`);
+  // api: otomatis membawa cookie sesi; raw: tanpa cookie (untuk menguji proteksi)
+  const authed = (method) => (url) => request(app)[method](url)
+    .set('Cookie', `jenika_session=${token}`)
+    .set('Origin', 'http://localhost:5173');
   const api = { get: authed('get'), post: authed('post'), put: authed('put'), patch: authed('patch'), delete: authed('delete') };
   return { db, app, api, raw: request(app), token, config: cfg };
 }
