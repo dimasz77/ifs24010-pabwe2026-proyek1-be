@@ -23,6 +23,7 @@ npm run dev                   # http://localhost:4000  (atau: npm start)
 ## Konfigurasi (`.env`)
 | Variabel | Default | Keterangan |
 |---|---|---|
+| `NODE_ENV` | development | Set `production` saat deploy HTTPS agar cookie sesi memakai `Secure; SameSite=None` |
 | `PORT` | 4000 | Port API |
 | `DB_PATH` | ./data/rental.db | Lokasi file SQLite |
 | `CORS_ORIGINS` | http://localhost:5173 | Origin frontend yang diizinkan (pisahkan koma). **Isi dengan URL frontend yang di-deploy** |
